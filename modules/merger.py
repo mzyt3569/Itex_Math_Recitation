@@ -3,8 +3,7 @@ import json
 from utils import make_client
 import prompts as P
 
-def latex_merge_latex(translated_latex: dict, is_debug=False) -> dict:
-    client = make_client("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")
+def latex_merge_latex(translated_latex: dict) -> dict:
     latex_merged_latex = copy.deepcopy(translated_latex)
 
     for key,val in latex_merged_latex.items():
@@ -23,13 +22,9 @@ def latex_merge_latex(translated_latex: dict, is_debug=False) -> dict:
 
             val["Origin"] = original_latex
 
-    if is_debug:
-        print("PART MERGED!!!!!!!!!!!!!!!!!!!!!!!!") 
-        print(json.dumps(latex_merged_latex,indent=4,ensure_ascii=False))
-        print("\n")
     return latex_merged_latex
 
-def final_merge_latex(file_name: str, question: str, latex_merged_latex: dict, is_debug=False) -> str:
+def final_merge_latex(file_name: str, question: str, latex_merged_latex: dict) -> str:
     client = make_client("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")
     merged_question = question
 
@@ -54,9 +49,4 @@ def final_merge_latex(file_name: str, question: str, latex_merged_latex: dict, i
     )
     merged_question = completion_merge.choices[0].message.content
     
-    if is_debug:
-        print("FINAL MERGED!!!!!!!!!!!!!!!!!!") 
-        print(f"Before : {question}")
-        print(f"After : {merged_question}")
-        print("\n")
     return merged_question

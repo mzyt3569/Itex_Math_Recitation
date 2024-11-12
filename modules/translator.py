@@ -5,7 +5,7 @@ import re
 from utils import make_client
 import prompts as P
 
-def translate_latex(parsed_latex: dict,is_debug=False) -> dict:
+def translate_latex(parsed_latex: dict) -> dict:
     client = make_client("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")
 
     translated_latex = copy.deepcopy(parsed_latex)

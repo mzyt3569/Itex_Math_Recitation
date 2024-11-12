@@ -3,6 +3,7 @@ import re
 from pylatexenc.latexwalker import LatexWalker, LatexMacroNode, LatexGroupNode, LatexCharsNode, LatexEnvironmentNode, LatexMathNode
 from utils import find_index,find_first
 from collections import deque
+import copy
 
 inequal_operator = ["<",">",r"\leq",r"\geq","≥","≤"]
 left_operator = ['[','{','(']
@@ -242,11 +243,12 @@ def fraction_extractor(json_dict: dict) -> dict:
 ################################################################
 
 def parse_latex(seperated_latex: dict, is_debug: bool) -> tuple[dict,str,str]:
+    cp_latex = copy.deepcopy(seperated_latex)
     Question, File = None, None
-    if seperated_latex["Question"]: Question = seperated_latex["Question"]
-    if seperated_latex["File"]: File = seperated_latex["File"]
+    if cp_latex["Question"]: Question = cp_latex["Question"]
+    if cp_latex["File"]: File = cp_latex["File"]
 
-    inequality_parsed = inequality_extractor(seperated_latex) # first, parse inequality.
+    inequality_parsed = inequality_extractor(cp_latex) # first, parse inequality.
     inequality_fraction_parsed = fraction_extractor(inequality_parsed) # second, parse fraction.
 
 
