@@ -1,6 +1,8 @@
 import os
 import argparse
 import csv
+import json
+from tqdm import tqdm 
 
 from modules.OCR import OCR_image
 from modules.translator import translate_latex
@@ -8,7 +10,16 @@ from modules.parser import parse_latex
 from modules.merger import latex_merge_latex,final_merge_latex
 from modules import utils
 
-def image_to_text(input_dir: str, output_dir: str, file_name: str, is_debug: bool, writer: csv.writer, db_dir: str) -> str:
+def image_to_text(
+        input_dir: str,
+        output_dir: str,
+        file_name: str,
+        is_debug: bool,
+        writer: csv.writer,
+        db_dir: str,
+        use_rag: bool
+    ) -> str:
+
     input_file_path = os.path.join(input_dir,file_name)
     output_file_path_wo_ext,_ = os.path.splitext(os.path.join(output_dir,file_name))
     output_file_path = output_file_path_wo_ext + ".txt"
@@ -17,15 +28,29 @@ def image_to_text(input_dir: str, output_dir: str, file_name: str, is_debug: boo
     extracted_json = OCR_image(input_file_path) # First, We conduct OCR and makes result to json file.
     parsed_latex,question,file_name = parse_latex(extracted_json) # We parse inequality and fraction
 
+    if question is None:
+        writer.writerow([extracted_json,parsed_latex])
+        with open(output_file_path,"w",encoding="utf-8") as fw: fw.write("Error while process")
+        return ""
+
     if parsed_latex:
-        translated_latex = translate_latex(parsed_latex,db_dir) # We translate all of latex parts.
+        translated_latex = translate_latex(parsed_latex,db_dir,use_rag) # We translate all of latex parts.
         latex_merged_latex = latex_merge_latex(translated_latex) # We merge parts into original latex
         merged_question = final_merge_latex(file_name,question,latex_merged_latex) # We merge latex into korean question
         output = merged_question
-    else: output = question
+        if is_debug: writer.writerow([
+            file_name,
+            question,
+            json.dumps(parsed_latex,ensure_ascii=False,indent=4),
+            json.dumps(translated_latex,ensure_ascii=False,indent=4),
+            json.dumps(latex_merged_latex,ensure_ascii=False,indent=4),
+            merged_question])
+    else: 
+        output = question
+        if is_debug: writer.writerow([file_name,question])
 
-    with open(output_file_path,"w") as fw: fw.write(output)
-    if is_debug: writer.writerow([file_name,question,parsed_latex,translated_latex,latex_merged_latex,merged_question])
+    with open(output_file_path,"w",encoding="utf-8") as fw: fw.write(output)
+    
     
     return output
 
@@ -41,7 +66,6 @@ def text_to_speech(output_dir: str, file_name: str, output_text: str) -> None:
     ) # we just use openai's text to speech model.
     response.write_to_file(output_file_path)
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-i','--input',type=str,default="./src/input",help="directory of input images") # input directory
@@ -50,10 +74,11 @@ if __name__ == "__main__":
     parser.add_argument('--debug', action='store_true',default=True) # use debug for check each step.
     parser.add_argument('--full',action='store_true',default=False) # if full is set, we make text to speech.
     parser.add_argument('-d', '--database',type=str,default="./db/db.json",help="rag database")
+    parser.add_argument('--rag', action='store_true')
 
     args = parser.parse_args()
 
-    input_dir,output_dir,is_debug,is_full,count,db_dir = args.input,args.output,args.debug,args.full,args.count,args.database
+    input_dir,output_dir,is_debug,is_full,count,db_dir,use_rag = args.input,args.output,args.debug,args.full,args.count,args.database,args.rag
     
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -66,9 +91,9 @@ if __name__ == "__main__":
     csv_file = open('./logs/steps.csv','w',encoding='utf-8-sig',newline='')
     writer = csv.writer(csv_file)
 
-    for idx,file_name in enumerate(input_list):
-        if idx <= count: break
+    for idx, file_name in tqdm(enumerate(input_list), total=count):
+        if idx >= count: break
 
-        output_text = image_to_text(input_dir,output_dir,file_name,is_debug,writer,db_dir) # file write is actually conducted here.
+        output_text = image_to_text(input_dir,output_dir,file_name,is_debug,writer,db_dir,use_rag) # file write is actually conducted here.
 
         if is_full: text_to_speech(output_dir,file_name,output_text) # is full is set, we conduct text to speech steps.    

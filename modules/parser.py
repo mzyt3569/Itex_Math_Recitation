@@ -1,7 +1,7 @@
 import json
 import re
 from pylatexenc.latexwalker import LatexWalker, LatexMacroNode, LatexGroupNode, LatexCharsNode, LatexEnvironmentNode, LatexMathNode
-from utils import find_index,find_first
+from modules.utils import find_index,find_first
 from collections import deque
 import copy
 
@@ -242,9 +242,13 @@ def fraction_extractor(json_dict: dict) -> dict:
 
 ################################################################
 
-def parse_latex(seperated_latex: dict, is_debug: bool) -> tuple[dict,str,str]:
+def parse_latex(seperated_latex: dict) -> tuple[dict,str,str]:
     cp_latex = copy.deepcopy(seperated_latex)
+
+    if cp_latex is None: return None,None,None
+    
     Question, File = None, None
+    
     if cp_latex["Question"]: Question = cp_latex["Question"]
     if cp_latex["File"]: File = cp_latex["File"]
 
