@@ -7,6 +7,7 @@ import re
 import openai
 from PIL import Image
 import sympy as sp
+from modules.utils import make_client
 
 # Set your OpenAI API key
 os.environ['OPENAI_API_KEY'] = 'MbNPSMI7O0ELIqm65H50T3BlbkFJa0Hv8GCNLQxPGYu1e5Fi'
@@ -16,18 +17,18 @@ def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
-example_image_path_1 = '../data/exam_10.00.16.png' # 순환소수
-example_image_path_2 = '../data/exam_10.02.40.png' # 순환소수
-example_image_path_3 = "../data/exam_9.41.54.png" # 지수
-example_image_path_4 = '../data/exam_9.42.01.png' # 루트
-example_image_path_5 = '../data/exam_10.03.14.png'# 지수
-example_image_path_6 = '../data/exam_9.51.32.png' # 특수기호
-example_image_path_7 = '../data/exam_9.52.21.png' # 특수기호
-example_image_path_8 = '../data/exam_9.52.46.png' # 특수기호
-example_image_path_9 = '../data/exam_9.45.48.png' # 선분
-example_image_path_10 = '../data/exam_10.11.44.png' # 선분
-example_image_path_11 = '../data/exam_9.52.55.png' # 선분
-example_iamge_path_12 = '../data/exam_9.58.15.png'# 비례식
+example_image_path_1 = './data/exam_10.00.16.png' # 순환소수
+example_image_path_2 = './data/exam_10.02.40.png' # 순환소수
+example_image_path_3 = "./data/exam_9.41.54.png" # 지수
+example_image_path_4 = './data/exam_9.42.01.png' # 루트
+example_image_path_5 = './data/exam_10.03.14.png'# 지수
+example_image_path_6 = './data/exam_9.51.32.png' # 특수기호
+example_image_path_7 = './data/exam_9.52.21.png' # 특수기호
+example_image_path_8 = './data/exam_9.52.46.png' # 특수기호
+example_image_path_9 = './data/exam_9.45.48.png' # 선분
+example_image_path_10 = './data/exam_10.11.44.png' # 선분
+example_image_path_11 = './data/exam_9.52.55.png' # 선분
+example_iamge_path_12 = './data/exam_9.58.15.png'# 비례식
 
 
 encoded_example_image_1 = encode_image(example_image_path_1)
@@ -375,7 +376,10 @@ def OCR_image(img_name):
     ]
     
     # Make the API call
-    img_response = openai.ChatCompletion.create(
+
+    client = make_client("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")
+
+    img_response = client.chat.completions.create(
         model="gpt-4o",
         messages=img_messages,
         temperature=0,
@@ -385,7 +389,7 @@ def OCR_image(img_name):
         presence_penalty=0.0
     )
 
-    result = img_response['choices'][0]['message']['content'].strip()
+    result = img_response.choices[0].message.content
     question_text, latex_parts = extract_latex_and_text(result)
     
     # Format the result as a JSON-like dictionary
