@@ -8,7 +8,7 @@ from modules.parser import parse_latex
 from modules.merger import latex_merge_latex,final_merge_latex
 from modules import utils
 
-def image_to_text(input_dir: str, output_dir: str, file_name: str, is_debug: bool, writer: csv.writer) -> str:
+def image_to_text(input_dir: str, output_dir: str, file_name: str, is_debug: bool, writer: csv.writer, db_dir: str) -> str:
     input_file_path = os.path.join(input_dir,file_name)
     output_file_path_wo_ext,_ = os.path.splitext(os.path.join(output_dir,file_name))
     output_file_path = output_file_path_wo_ext + ".txt"
@@ -18,7 +18,7 @@ def image_to_text(input_dir: str, output_dir: str, file_name: str, is_debug: boo
     parsed_latex,question,file_name = parse_latex(extracted_json) # We parse inequality and fraction
 
     if parsed_latex:
-        translated_latex = translate_latex(parsed_latex) # We translate all of latex parts.
+        translated_latex = translate_latex(parsed_latex,db_dir) # We translate all of latex parts.
         latex_merged_latex = latex_merge_latex(translated_latex) # We merge parts into original latex
         merged_question = final_merge_latex(file_name,question,latex_merged_latex) # We merge latex into korean question
         output = merged_question
@@ -49,10 +49,11 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--count',type=int,default=-1,help="count of processing images")
     parser.add_argument('--debug', action='store_true',default=True) # use debug for check each step.
     parser.add_argument('--full',action='store_true',default=False) # if full is set, we make text to speech.
+    parser.add_argument('-d', '--database',type=str,default="./db/db.json",help="rag database")
 
     args = parser.parse_args()
 
-    input_dir,output_dir,is_debug,is_full,count = args.input,args.output,args.debug,args.full,args.count
+    input_dir,output_dir,is_debug,is_full,count,db_dir = args.input,args.output,args.debug,args.full,args.count,args.database
     
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -68,6 +69,6 @@ if __name__ == "__main__":
     for idx,file_name in enumerate(input_list):
         if idx <= count: break
 
-        output_text = image_to_text(input_dir,output_dir,file_name,is_debug,writer) # file write is actually conducted here.
+        output_text = image_to_text(input_dir,output_dir,file_name,is_debug,writer,db_dir) # file write is actually conducted here.
 
         if is_full: text_to_speech(output_dir,file_name,output_text) # is full is set, we conduct text to speech steps.    
