@@ -1,7 +1,7 @@
 import copy
 import json
-from utils import make_client
-import prompts as P
+from modules.utils import make_client
+import modules.prompts as P
 
 def latex_merge_latex(translated_latex: dict) -> dict:
     latex_merged_latex = copy.deepcopy(translated_latex)

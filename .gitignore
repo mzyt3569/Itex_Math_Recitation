@@ -1,2 +1,6 @@
-src/input/
-src/output/
+src/
+logs/
+error_list_up.txt
+result_final.json
+copier.py
+modules/__pycache__

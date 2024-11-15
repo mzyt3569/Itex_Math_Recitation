@@ -3,28 +3,25 @@ import copy
 import re
 import numpy as np
 
-from utils import make_client
-import prompts as P
+from modules.utils import make_client
+import modules.prompts as P
 
 from sklearn.metrics.pairwise import cosine_similarity
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.prompts import ChatPromptTemplate
-from langchain.vectorstores import FAISS
+from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
 from langchain.schema import Document
 from langchain.chains import LLMChain
 
-api_key = "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"
-embeddings = OpenAIEmbeddings(openai_api_key=api_key) # 나중에 utils에 집어넣겠음.
-
-file_path = '/content/drive/MyDrive/Colab_Content/db.json' #이것도 나중에 고칠 예정.
+retriever = None
 
 # FAISS 인덱스 생성 및 설정
-def setup_vector_store(translated_latex):
-    documents = [
-        Document(page_content=str(val["Origin"]), metadata=val)
-        for key, val in translated_latex.items()
-    ]
+def setup_vector_store(rag_data_list : list[dict], embeddings):
+    documents = []
+    for rag_data in rag_data_list:
+        documents.append(Document(page_content=rag_data["input"], metadata={"output": rag_data["output"]}))
+
     vectorstore = FAISS.from_documents(documents, embeddings)
     return vectorstore.as_retriever()
 
@@ -47,56 +44,71 @@ def search_documents_with_similarity(retriever, query, embeddings, num_results=3
     return relevant_results
 
 # ChatPromptTemplate 설정
-template = """
-Context: {context}
-Question: {question}
-Answer: 당신은 LateX를 한국어로 음독하는 역할을 수행합니다.
-위의 Context를 참고하여 Question을 올바르게 한글로 음독해 주세요.
-context는 참고만 하고 음독하지 말고, question의 latex(영어 및 수식)만을 한국어로 음독해 주세요.
-"""
-prompt = ChatPromptTemplate.from_template(template)
-model = ChatOpenAI(openai_api_key=api_key)
-output_parser = StrOutputParser()
-chain = LLMChain(llm=model, prompt=prompt, output_parser=output_parser)
 
 #json File읽어와서 vector에 저장하는 방식인거 같아서 대충 이렇게 해놨음.
-ret_temp = None
-with open(file_path, encoding='utf-8') as json_file:
-    db_latex = json.load(json_file)
-    ret_temp = setup_vector_store(db_latex)
+def initialize_retriever(db_dir: str, embeddings):
+    global retriever
+    with open(db_dir, "r", encoding="utf-8") as db_raw:
+        db_json = json.load(db_raw)
+        retriever = setup_vector_store(db_json, embeddings)
 
-def run_chain(query, retriever) -> str:
-    try:
-        query_str = str(query)
-        if len(query_str) == 1:
-            return "An error occurred: Single character query is not allowed."
-        search_result = search_documents_with_similarity(retriever, query_str, embeddings, num_results=5)
-        if search_result and len(search_result) > 0:
-            context_list = [
-                f"Input: {res[0].page_content}, Output: {res[0].metadata.get('output', 'No output found')}"
-                for res in search_result
-            ]
-            context = "\n".join(context_list)
-        else:
-            context = ""
-        question = str(query_str).strip()
-        inputs = {"context": context, "question": question}
-        return chain.run(inputs)
-    except Exception as e:
-        print(f"Error during chain execution: {str(e)}")
-        return "An error occurred during chain execution."
+def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
+    if(use_RAG):
+        prompt = ChatPromptTemplate.from_template(P.rag_sys_prompt)
+        model = ChatOpenAI(openai_api_key="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")
+        output_parser = StrOutputParser()
+        chain = LLMChain(llm=model, prompt=prompt, output_parser=output_parser)
 
+        # We defined Embeddings
+        embeddings = OpenAIEmbeddings(api_key="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")
 
-def translate_latex(parsed_latex: dict,db_dir: str) -> dict:
+        # We defined retriever
+        global retriever
+        if use_RAG:
+            if retriever is None:
+                embeddings = OpenAIEmbeddings(api_key="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")
+                initialize_retriever(db_dir, embeddings)
+
+        try:
+            if len(latex_str) == 1: return "An error occurred: Single character query is not allowed."
+
+            search_result = search_documents_with_similarity(retriever, latex_str, embeddings, num_results=5)
+
+            if search_result and len(search_result) > 0:
+                context_list = [
+                    f"Input: {res[0].page_content}, Output: {res[0].metadata.get('output', 'No output found')}"
+                    for res in search_result
+                ]
+                context = "\n".join(context_list)
+            else:
+                context = ""
+
+            question = latex_str.strip()
+            inputs = {"context": context, "question": question}
+            return chain.run(inputs)
+        except Exception as e:
+            return "An error occurred during chain execution."
+    else:
+        client = make_client("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")
+        latex_prompt = [{"role" : "user", "content" : latex_str}]
+
+        completion_latex = client.chat.completions.create(
+            model="gpt-4o",
+            max_tokens=4096,
+            temperature=0,
+            messages=P.latex2kor_shot + latex_prompt
+        )
+        translate_latex = completion_latex.choices[0].message.content
+        return translate_latex
+
+def translate_latex(parsed_latex: dict, db_dir: str, use_rag: bool) -> dict:
     client = make_client("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")
 
     translated_latex = copy.deepcopy(parsed_latex)
 
     for key,val in translated_latex.items():
         if "Origin" in val:
-            will_translate_latex = val["Origin"]
-            translater_latex = run_chain(will_translate_latex,ret_temp)
-            val["Origin"] = translater_latex
+            val["Origin"] = translate_latex_line(val["Origin"],db_dir,use_rag)
 
         if "Inequal_list" in val:
             inequal_list = val["Inequal_list"]
