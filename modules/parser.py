@@ -115,7 +115,7 @@ def inequality_parser(latex_string: str) -> tuple[str,dict]:
 
         for num in used: visited[num] = True # 오른쪽을 탐색하는 동안 찾은 부등호는 탐색 표시.
 
-        if left_side.count('|') == 1: left_side = left_side[left_side.find('|')+1:] # 땜빵 : 만약 {x | x < 2} 와 같은 식이면, 조건 앞을 삭제 시킨다.
+        if left_side.count('|') == 1: left_side = left_side[left_side.find('|')+1:] # 임시조치 : 만약 {x | x < 2} 와 같은 식이면, 조건 앞을 삭제 시킨다.
         inequality = left_side + latex_string[op[0]:op[1]] + right_side # 부등식을 조합한다.
 
         if len(find_index(inequality,inequal_operator)) == op_cnt:
@@ -129,7 +129,8 @@ def inequality_parser(latex_string: str) -> tuple[str,dict]:
                 non_pure.append([inequality,op_cnt])
                 checker.add(inequality)
     
-    replace_pure(pure,non_pure)
+    replace_pure(pure,non_pure) # 계속 재귀적으로 분해해간다.
+
     for key,value in pure.items():
         modified_string = modified_string.replace(value,key)
     return modified_string,pure
@@ -254,11 +255,5 @@ def parse_latex(seperated_latex: dict) -> tuple[dict,str,str]:
 
     inequality_parsed = inequality_extractor(cp_latex) # first, parse inequality.
     inequality_fraction_parsed = fraction_extractor(inequality_parsed) # second, parse fraction.
-
-
-    # if is_debug:
-    #     print("PARSED!!!!!!!!!!!!!!!!!!!!!!!")
-    #     print(json.dumps(inequality_fraction_parsed,indent=4,ensure_ascii=False))
-    #     print("\n")
 
     return inequality_fraction_parsed,Question,File

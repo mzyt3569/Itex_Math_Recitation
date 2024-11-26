@@ -4,6 +4,7 @@ from modules.utils import make_client
 import modules.prompts as P
 
 def latex_merge_latex(translated_latex: dict) -> dict:
+    # 분리되었던 분수와 부등식을 원래 라텍스에 집어넣는다.
     latex_merged_latex = copy.deepcopy(translated_latex)
 
     for key,val in latex_merged_latex.items():
@@ -25,6 +26,7 @@ def latex_merge_latex(translated_latex: dict) -> dict:
     return latex_merged_latex
 
 def final_merge_latex(file_name: str, question: str, latex_merged_latex: dict) -> str:
+    # 분리되었던 라텍스를 원래 문제에 집어넣는다.
     client = make_client("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")
     merged_question = question
 

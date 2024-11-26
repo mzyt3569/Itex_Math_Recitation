@@ -44,8 +44,6 @@ def search_documents_with_similarity(retriever, query, embeddings, num_results=3
     return relevant_results
 
 # ChatPromptTemplate 설정
-
-#json File읽어와서 vector에 저장하는 방식인거 같아서 대충 이렇게 해놨음.
 def initialize_retriever(db_dir: str, embeddings):
     global retriever
     with open(db_dir, "r", encoding="utf-8") as db_raw:
@@ -54,6 +52,7 @@ def initialize_retriever(db_dir: str, embeddings):
 
 def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
     if(use_RAG):
+        # RAG를 쓸때.
         prompt = ChatPromptTemplate.from_template(P.rag_sys_prompt)
         model = ChatOpenAI(openai_api_key="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")
         output_parser = StrOutputParser()
@@ -89,6 +88,7 @@ def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
         except Exception as e:
             return "An error occurred during chain execution."
     else:
+        # RAG를 사용하지 않을 때
         client = make_client("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")
         latex_prompt = [{"role" : "user", "content" : latex_str}]
 
@@ -102,6 +102,8 @@ def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
         return translate_latex
 
 def translate_latex(parsed_latex: dict, db_dir: str, use_rag: bool) -> dict:
+    #간단하게 json을 모두 순회하면서 각 라텍스를 번역합니다.
+    
     client = make_client("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")
 
     translated_latex = copy.deepcopy(parsed_latex)
