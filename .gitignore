@@ -4,3 +4,4 @@ error_list_up.txt
 result_final.json
 copier.py
 modules/__pycache__
+__pycache__
