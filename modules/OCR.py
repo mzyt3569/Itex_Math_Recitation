@@ -10,25 +10,30 @@ import sympy as sp
 from modules.utils import make_client
 
 # Set your OpenAI API key
-os.environ['OPENAI_API_KEY'] = 'MbNPSMI7O0ELIqm65H50T3BlbkFJa0Hv8GCNLQxPGYu1e5Fi'
-openai.api_key = os.environ['OPENAI_API_KEY']
+os.environ['OPENAI_API_KEY'] = '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'
+openai.api_key = 'YOUR_OPENAI_API_KEY'
+
+client = OpenAI(
+     api_key=os.environ.get("OPENAI_API_KEY"),
+)
+
 
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
-example_image_path_1 = './data/exam_10.00.16.png' # 순환소수
-example_image_path_2 = './data/exam_10.02.40.png' # 순환소수
-example_image_path_3 = "./data/exam_9.41.54.png" # 지수
-example_image_path_4 = './data/exam_9.42.01.png' # 루트
-example_image_path_5 = './data/exam_10.03.14.png'# 지수
-example_image_path_6 = './data/exam_9.51.32.png' # 특수기호
-example_image_path_7 = './data/exam_9.52.21.png' # 특수기호
-example_image_path_8 = './data/exam_9.52.46.png' # 특수기호
-example_image_path_9 = './data/exam_9.45.48.png' # 선분
-example_image_path_10 = './data/exam_10.11.44.png' # 선분
-example_image_path_11 = './data/exam_9.52.55.png' # 선분
-example_iamge_path_12 = './data/exam_9.58.15.png'# 비례식
+example_image_path_1 = '../data/exam_10.00.16.png' # 순환소수
+example_image_path_2 = '../data/exam_10.02.40.png' # 순환소수
+example_image_path_3 = "../data/exam_9.41.54.png" # 지수
+example_image_path_4 = '../data/exam_9.42.01.png' # 루트
+example_image_path_5 = '../data/exam_10.03.14.png'# 지수
+example_image_path_6 = '../data/exam_9.51.32.png' # 특수기호
+example_image_path_7 = '../data/exam_9.52.21.png' # 특수기호
+example_image_path_8 = '../data/exam_9.52.46.png' # 특수기호
+example_image_path_9 = '../data/exam_9.45.48.png' # 선분
+example_image_path_10 = '../data/exam_10.11.44.png' # 선분
+example_image_path_11 = '../data/exam_9.52.55.png' # 선분
+example_iamge_path_12 = '../data/exam_9.58.15.png'# 비례식
 
 
 encoded_example_image_1 = encode_image(example_image_path_1)
@@ -44,7 +49,7 @@ encoded_example_image_10 = encode_image(example_image_path_10)
 encoded_example_image_11 = encode_image(example_image_path_11)
 encoded_example_image_12 = encode_image(example_iamge_path_12)
 
-# Few-shot examples for guiding the model
+# Few-shot example
 img_system_prompt = """당신은 수학 문제가 담긴 이미지를 받으면 문제에 써진 텍스트를 Latex로 바꾸어서 보내면 됩니다.
 형식은 다음과 같습니다.
 [문제]
@@ -240,7 +245,7 @@ img_example = [
         Latex_1: \(1.\\dot{1}\)
         Latex_2: \(1.\\dot{1}\\dot{3}\)
         Latex_3: \(0.1\\dot{1}\)
-        Latex_4: \(0.\\dot{1}\\dot{0}\)
+        Latex_4: \(0.\\dot{1}\\dot{0}\)             
         Latex_5: \(0.\\dot{1}0\\dot{1}\)
         Latex_6: \(0.0\\dot{1}\)
         Latex_7: \(0.\\dot{0}\\dot{1}\)
@@ -321,50 +326,65 @@ def preprocess_image(image_path):
 def extract_text_with_ocr(image_path):
     preprocessed_image = preprocess_image(image_path)
     preprocessed_image_pil = Image.fromarray(preprocessed_image)
-    text_kor = pytesseract.image_to_string(preprocessed_image_pil, config='--oem 3 --psm 6', lang='kor')
-    text_math = pytesseract.image_to_string(preprocessed_image_pil, config='--oem 3 --psm 6')
+
+      # Tesseract 설정
+    config_kor = r'--oem 3 --psm 6'  # 한국어
+    config_math = r'--oem 3 --psm 6'  # 수식 인식
+
+      # 한국어와 수학 수식을 별도로 인식
+    text_kor = pytesseract.image_to_string(preprocessed_image_pil, config=config_kor, lang='kor')
+    text_math = pytesseract.image_to_string(preprocessed_image_pil, config=config_math)
+
     return text_kor, text_math
 
 def parse_equations_with_sympy(text):
-    equations = text.split('\n')
-    latex_equations = []
-    for eq in equations:
-        try:
-            sympy_eq = sp.sympify(eq)
-            latex_eq = sp.latex(sympy_eq)
-            latex_equations.append(latex_eq)
-        except:
-            latex_equations.append(eq)
-    return latex_equations
+      equations = text.split('\n')
+      latex_equations = []
+      for eq in equations:
+          try:
+              sympy_eq = sp.sympify(eq)
+              latex_eq = sp.latex(sympy_eq)
+              latex_equations.append(latex_eq)
+          except:
+              latex_equations.append(eq)  # SymPy로 파싱하지 못한 경우 원래 텍스트 사용
+      return latex_equations
 
 def extract_latex_and_text(text):
-    text_pattern = re.compile(r'\\text\{(.+?)\}')
-    text_replaced = text_pattern.sub(lambda m: m.group(1), text)
-    latex_pattern = re.compile(r'(\\\(.+?\\\))|(\\\[.+?\\\])')
-    
-    latex_expressions = []
-    match_index = 1
-    
-    def replace_with_placeholder(match):
-        nonlocal match_index
-        placeholder = f'[Latex_{match_index}]'
-        latex_expressions.append(match.group())
-        match_index += 1
-        return placeholder
-    
-    processed_text = latex_pattern.sub(replace_with_placeholder, text_replaced)
-    return processed_text, latex_expressions
+      # \text{} 패턴을 우선적으로 처리하여 한글만 남기기
+      text_pattern = re.compile(r'\\text\{(.+?)\}')
+      text_replaced = text_pattern.sub(lambda m: m.group(1), text)  # \text{} 내용만 한글로 남김
 
-# Main OCR Image Function
+      # LaTeX 수식 패턴 정의
+      latex_pattern = re.compile(r'(\\\(.+?\\\))|(\\\[.+?\\\])')
+
+      # Placeholder list to store LaTeX parts
+      latex_expressions = []
+      match_index = 1
+
+      # LaTeX 수식을 [Latex_n]으로 대체하여 처리된 텍스트 생성
+      def replace_with_placeholder(match):
+          nonlocal match_index
+          placeholder = f'[Latex_{match_index}]'
+          latex_expressions.append(match.group())
+          match_index += 1
+          return placeholder
+
+      processed_text = latex_pattern.sub(replace_with_placeholder, text_replaced)
+
+      return processed_text, latex_expressions
+# OCR 메인 함수 
 
 def OCR_image(img_name):
-    # Encode the image and extract text
     encoded_image = encode_image(img_name)
     text_kor, text_math = extract_text_with_ocr(img_name)
     latex_math = parse_equations_with_sympy(text_math)
 
-    # Prepare the messages for the model
-    img_messages = img_example + [
+      # GPT-4o 모델 메시지 구성
+    img_messages = [
+        {
+            "role": "system",
+            "content": img_system_prompt
+        },
         {
             "role": "user",
             "content": img_user_prompt + "\n\nOCR로 추출된 텍스트:\n" + text_kor + '\n\n' + ' \\ '.join(latex_math)
@@ -381,7 +401,7 @@ def OCR_image(img_name):
 
     img_response = client.chat.completions.create(
         model="gpt-4o",
-        messages=img_messages,
+        messages=img_example + img_messages,
         temperature=0,
         max_tokens=2048,
         top_p=0.0,
@@ -389,16 +409,17 @@ def OCR_image(img_name):
         presence_penalty=0.0
     )
 
-    result = img_response.choices[0].message.content
+    result = img_response['choices'][0]['message']['content'].strip()
     question_text, latex_parts = extract_latex_and_text(result)
-    
-    # Format the result as a JSON-like dictionary
+
+    # 결과를 원하는 형식으로 구성
     formatted_result = {
         "File": img_name,
         "Question": question_text
     }
-    
+
+    # LaTeX 수식을 `Latex_n` 형식으로 추가
     for i, latex in enumerate(latex_parts):
         formatted_result[f"Latex_{i + 1}"] = latex.strip()
-    
+
     return formatted_result
