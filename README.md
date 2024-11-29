@@ -33,6 +33,9 @@
     ```
     - 이 웹 데모는 RAG를 사용하지 않으며, 음성을 생성하지 않습니다.
     - RAG를 사용하려면, 16번째 줄의 `False`를 `True`로 변경합니다.
+  
+4. Usage Instructions
+    코드 주석 참고
 
 ## Other Information
 
@@ -40,3 +43,4 @@
 - **Parser**: 분수와 부등호 분리
 - **Translator**: LaTeX 번역
 - **Merger**: LaTeX 병합
+
