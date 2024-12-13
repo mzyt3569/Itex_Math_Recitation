@@ -13,7 +13,7 @@ def process_image(image_path):
     print(image_path)
     o_r = OCR_image(image_path)
     p_r,question,file_name = parse_latex(o_r)
-    t_r = translate_latex(p_r,"",False)
+    t_r = translate_latex(p_r,"./db/db.json",False)
     m_r = latex_merge_latex(t_r)
     f_r = final_merge_latex(file_name,question,m_r)
 
