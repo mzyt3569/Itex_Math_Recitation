@@ -19,7 +19,7 @@
 
 1. 기본 사용법:
     ```sh
-    python Inference.py -i /source_directory -o /output_directory -d /database_directory_for_rag
+    python Inference.py -i /source_directory -o /output_directory -d /database_directory_for_rag --debug --full
     ```
 
 2. 추가 옵션:
@@ -32,14 +32,14 @@
     python web_launcher.py
     ```
     - 이 웹 데모는 RAG를 사용하지 않으며, 음성을 생성하지 않습니다.
-    - RAG를 사용하려면, 16번째 줄의 `False`를 `True`로 변경합니다.
+    - RAG를 사용하려면, 16번째 줄의 `False`를 `True`로 바꾸시고, db의 경로도 기본 경로가 아니라면 추가로 지정해주세요.
   
 4. Usage Instructions
 
-    코드 주석 참고
+    각 함수에 쉽게 판별할 수 있는 주석이 첨부되어 있습니다.
 
 ## Other Information
-
+- 각 스텝 별 output은 logs의 csv파일들을 참조해주세요.
 - **OCR**: 이미지를 받아 JSON 구조 파일 생성
 - **Parser**: 분수와 부등호 분리
 - **Translator**: LaTeX 번역
