@@ -23,8 +23,8 @@
     ```
 
 2. 추가 옵션:
-    - RAG 사용: `--rag` 옵션 추가
-    - 단계 확인: `--debug` 옵션 추가 (CSV 파일 생성)
+    - RAG 사용: `--rag` 옵션 추가(다만, RAG가 조금 불안정한 부분이 있습니다.)
+    - 단계 확인: `--debug` 옵션 추가 (CSV 파일 생성, logs/steps.csv로 저장됩니다.)
     - 음성 생성: `--full` 옵션 추가 (MP3 파일 생성)
 
 3. 웹 데모 실행:
@@ -35,6 +35,7 @@
     - RAG를 사용하려면, 16번째 줄의 `False`를 `True`로 변경합니다.
   
 4. Usage Instructions
+
     코드 주석 참고
 
 ## Other Information
