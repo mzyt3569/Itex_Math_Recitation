@@ -10,10 +10,10 @@ import sympy as sp
 from modules.utils import make_client
 
 # Set your OpenAI API key
-os.environ['OPENAI_API_KEY'] = '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'
-openai.api_key = 'YOUR_OPENAI_API_KEY'
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+openai.api_key = OPENAI_API_KEY
 
-client = make_client('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')
+client = make_client(OPENAI_API_KEY)
 
 
 def encode_image(image_path):
@@ -395,7 +395,7 @@ def OCR_image(img_name):
     
     # Make the API call
 
-    client = make_client("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")
+    client = make_client(OPENAI_API_KEY)
 
     img_response = client.chat.completions.create(
         model="gpt-4o",

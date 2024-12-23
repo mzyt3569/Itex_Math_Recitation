@@ -1,4 +1,4 @@
-import copy
+import copy, os
 import json
 from modules.utils import make_client
 import modules.prompts as P
@@ -27,7 +27,7 @@ def latex_merge_latex(translated_latex: dict) -> dict:
 
 def final_merge_latex(file_name: str, question: str, latex_merged_latex: dict) -> str:
     # 분리되었던 라텍스를 원래 문제에 집어넣는다.
-    client = make_client("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")
+    client = make_client(os.getenv('OPENAI_API_KEY'))
     merged_question = question
 
     for key,val in latex_merged_latex.items():

@@ -1,5 +1,5 @@
 
-import json  
+import json, os
 import copy  # 객체 복사에 사용
 import re  # 정규 표현식 처리를 위한 모듈
 import numpy as np  
@@ -112,7 +112,7 @@ def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
         except Exception as e:  # 에러 발생 시 처리
             return "An error occurred during chain execution."
     else: # RAG를 사용하지 않을 때
-        client = make_client("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")
+        client = make_client(os.getenv('OPENAI_API_KEY'))
         latex_prompt = [{"role" : "user", "content" : latex_str}]
 
         completion_latex = client.chat.completions.create(
@@ -127,7 +127,7 @@ def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
 def translate_latex(parsed_latex: dict, db_dir: str, use_rag: bool) -> dict:
     #간단하게 json을 모두 순회하면서 각 라텍스를 번역합니다.
     
-    client = make_client("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")
+    client = make_client(os.getenv('OPENAI_API_KEY'))
 
     translated_latex = copy.deepcopy(parsed_latex)
 
