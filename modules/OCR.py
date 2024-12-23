@@ -83,7 +83,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]의 양변에 [Latex_2]을 대입하면 [Latex_3].
         [Latex_4]의 양변을 [Latex_5]에 대해 미분하고 [Latex_6]을 대입하면 [Latex_7].
@@ -109,7 +109,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         그림과 같이 중심이 [Latex_1], 반지름의 길이가 [Latex_2]이고 중심각의 크기가 [Latex_3]인 부채꼴 [Latex_4]이 있다.
         호 [Latex_5] 위에 점 [Latex_6], 선분 [Latex_7] 위에 점 [Latex_8], 선분 [Latex_9] 위에 점 [Latex_10]을 사각형 [Latex_11]이 되도록 잡는다.
@@ -141,7 +141,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]에 [Latex_2]을 대입하면 [Latex_3].
         따라서 [Latex_4]
@@ -166,7 +166,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]에서 [Latex_2] 또는 [Latex_3]이다.
         [Latex_4]에서 [Latex_5].
@@ -191,7 +191,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]이므로 [Latex_2], [Latex_3]이고 [Latex_4].
 
@@ -215,8 +215,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content":
-        """
+        "content": r"""
         [문제]
         [Latex_1]일 때, 상수 [Latex_2]에 대하여 [Latex_3]의 값을 구하시오.
 
@@ -229,7 +228,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         어떤 기약분수를 순환소수로 나타내는데, 예준이는 분모를 잘못 보아 [Latex_1]이 되었고, 연서는 분자를 잘못 보아 [Latex_2]이 되었다. 이 때 처음 기약분수를 순환소수로 나타내면?
 
@@ -257,7 +256,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]에서 [Latex_2] 안에 알맞은 수는 무엇인가?
 
@@ -287,7 +286,7 @@ img_example = [
     },
     {
         "role": "assistant",
-        "content": """
+        "content": r"""
         [문제]
         [Latex_1]의 값은 무엇인가?
 
