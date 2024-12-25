@@ -60,7 +60,7 @@ def text_to_speech(output_dir: str, file_name: str, output_text: str) -> None:
     output_file_path_wo_ext,_ = os.path.splitext(os.path.join(output_dir,file_name))
     output_file_path = output_file_path_wo_ext + ".mp3" # get the output file
 
-    client = utils.make_client("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")
+    client = utils.make_client(os.getenv('OPENAI_API_KEY'))
     response = client.audio.speech.create(
         model="tts-1",
         voice="echo",

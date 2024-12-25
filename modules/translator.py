@@ -73,20 +73,20 @@ def translate_latex_line(latex_str: str, db_dir: str, use_RAG=False) -> str:
         # 프롬프트 템플릿 설정
         prompt = ChatPromptTemplate.from_template(P.rag_sys_prompt)
         # ChatGPT 모델 초기화
-        model = ChatOpenAI(openai_api_key="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")
+        model = ChatOpenAI(openai_api_key=os.getenv('OPENAI_API_KEY'))
         # 문자열 출력 파서 초기화
         output_parser = StrOutputParser()
         # 체인(Chain) 초기화 (프롬프트와 모델 연결)
         chain = LLMChain(llm=model, prompt=prompt, output_parser=output_parser)
 
         # OpenAI 임베딩 생성
-        embeddings = OpenAIEmbeddings(api_key="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")
+        embeddings = OpenAIEmbeddings(api_key=os.getenv('OPENAI_API_KEY'))
 
         # 전역 변수 retriever 사용
         global retriever
         if use_RAG:  # RAG 사용 여부 확인
             if retriever is None:  # 검색기가 초기화되지 않았을 경우
-                embeddings = OpenAIEmbeddings(api_key="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")
+                embeddings = OpenAIEmbeddings(api_key=os.getenv('OPENAI_API_KEY'))
                 initialize_retriever(db_dir, embeddings)  # 검색기 초기화
 
         try:
